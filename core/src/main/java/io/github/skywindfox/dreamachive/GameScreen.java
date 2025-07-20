@@ -7,11 +7,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import io.github.skywindfox.dreamachive.EnemyBullet;
-import io.github.skywindfox.dreamachive.BulletPattern;
-import io.github.skywindfox.dreamachive.CirclePattern;
-import io.github.skywindfox.dreamachive.SpiralPattern;
-
 
 public class GameScreen implements Screen {
 
@@ -23,7 +18,7 @@ public class GameScreen implements Screen {
     private List<EnemyBullet> enemyBullets;
     private LevelLoader levelLoader;
     private String currentLevel = "level1.json";
-
+    private EnemySpawner spawner;
 
     public GameScreen(final DreamAchiveGame game) {
         this.game = game;
@@ -35,45 +30,39 @@ public class GameScreen implements Screen {
         player = new Player();
         enemies = new ArrayList<>();
         enemyBullets = new ArrayList<>();
+
         enemies.add(new Enemy(300, 500, new CirclePattern()));
-        spawner = new EnemySpawner();
-        levelLoader = new LevelLoader();
-        
-        loadLevel(currentLevel);
-        
-        private void loadLevel(String levelName) {
-            LevelData levelData = levelLoader.loadLevel(levelName);
-            if (levelData != null) {
-                spawner.loadLevel(levelData);
-            } else {
-                // 加载失败，使用默认关卡
-                Gdx.app.error("GameScreen", "Failed to load level, using default");
-                spawner.createDemoWaves();
-            }
-        }
-        
-     // 添加重新开始关卡的方法
-        public void restartLevel() {
-            loadLevel(currentLevel);
-            // 重置游戏状态...
-        }
-        
-        // 创建使用螺旋弹幕的敌人
         enemies.add(new Enemy(300, 500, new SpiralPattern()));
 
+        spawner = new EnemySpawner();
+        levelLoader = new LevelLoader();
+
+        loadLevel(currentLevel);
+    }
+
+    private void loadLevel(String levelName) {
+        LevelData levelData = levelLoader.loadLevel(levelName);
+        if (levelData != null) {
+            spawner.loadLevel(levelData);
+        } else {
+            Gdx.app.error("GameScreen", "Failed to load level, using default");
+            spawner.createDemoWaves();
+        }
+    }
+
+    public void restartLevel() {
+        loadLevel(currentLevel);
+        // 重置游戏状态...
     }
 
     @Override
     public void render(float delta) {
-        // 更新逻辑
         player.update(delta);
 
-        // 更新敌人 & 子弹
         for (Enemy e : enemies) {
             e.update(delta, enemyBullets);
         }
 
-        // 更新敌方子弹
         Iterator<EnemyBullet> bulletIter = enemyBullets.iterator();
         while (bulletIter.hasNext()) {
             EnemyBullet b = bulletIter.next();
@@ -83,11 +72,9 @@ public class GameScreen implements Screen {
             }
         }
 
-        // 清屏
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // 渲染
         batch.begin();
 
         for (Enemy e : enemies) {
@@ -103,7 +90,6 @@ public class GameScreen implements Screen {
         batch.end();
     }
 
-
     @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}
@@ -116,5 +102,4 @@ public class GameScreen implements Screen {
         for (Enemy e : enemies) e.dispose();
         for (EnemyBullet b : enemyBullets) b.dispose();
     }
-
 }

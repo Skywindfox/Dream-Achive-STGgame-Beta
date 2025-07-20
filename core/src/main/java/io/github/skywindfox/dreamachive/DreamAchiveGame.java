@@ -18,6 +18,5 @@ public class DreamAchiveGame extends Game {
     public void dispose() {
         super.dispose();
         Assets.dispose();
-        //asdasdasd;
     }
 }
