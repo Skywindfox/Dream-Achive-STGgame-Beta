@@ -2,95 +2,93 @@ package io.github.skywindfox.dreamachive;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import io.github.skywindfox.dreamachive.EnemyBullet;
-import io.github.skywindfox.dreamachive.BulletPattern;
-import io.github.skywindfox.dreamachive.CirclePattern;
-import io.github.skywindfox.dreamachive.SpiralPattern;
 
-
+/**
+ * 游戏主屏幕，负责游戏核心玩法逻辑和渲染
+ * 实现Screen接口，供Game类管理和切换
+ */
 public class GameScreen implements Screen {
+    private DreamAchiveGameMain game;  // 持有主游戏实例，可用于屏幕切换等操作
+    private SpriteBatch batch;         // 精灵批处理，用于绘图
+    private Texture playerTexture;     // 玩家角色贴图
+    private float playerX, playerY;    // 玩家位置坐标
+    private float speed = 200f;        // 玩家移动速度（像素/秒）
 
-    final DreamAchiveGame game;
-
-    private SpriteBatch batch;
-    private Player player;
-    private List<Enemy> enemies;
-    private List<EnemyBullet> enemyBullets;
-
-
-    public GameScreen(final DreamAchiveGame game) {
+    // 构造函数，传入主游戏对象
+    public GameScreen(DreamAchiveGameMain game) {
         this.game = game;
+        batch = new SpriteBatch();
     }
 
+    // 当这个Screen被设置时调用，初始化资源和状态
     @Override
     public void show() {
         batch = new SpriteBatch();
-        player = new Player();
-        enemies = new ArrayList<>();
-        enemyBullets = new ArrayList<>();
-        //enemies.add(new Enemy(200, 400, new CirclePattern()));
-        // 创建使用螺旋弹幕的敌人
-        enemies.add(new Enemy(300, 500, new SpiralPattern()));
-
+        playerTexture = new Texture("player.png"); // 加载玩家图片资源
+        // 初始玩家位置：屏幕中央偏下
+        playerX = Gdx.graphics.getWidth() / 2f - playerTexture.getWidth() / 2f;
+        playerY = Gdx.graphics.getHeight() / 4f;
     }
 
+    /**
+     * 每帧渲染调用，delta是距离上一次渲染的时间间隔（秒）
+     */
     @Override
     public void render(float delta) {
-        // 更新逻辑
-        player.update(delta);
+        // 处理玩家输入，更新位置
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT))  playerX -= speed * delta;
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) playerX += speed * delta;
+        if (Gdx.input.isKeyPressed(Input.Keys.UP))    playerY += speed * delta;
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN))  playerY -= speed * delta;
 
-        // 更新敌人 & 子弹
-        for (Enemy e : enemies) {
-            e.update(delta, enemyBullets);
-        }
+        // 限制玩家在屏幕边界内
+        playerX = Math.max(0, Math.min(playerX, Gdx.graphics.getWidth() - playerTexture.getWidth()));
+        playerY = Math.max(0, Math.min(playerY, Gdx.graphics.getHeight() - playerTexture.getHeight()));
 
-        // 更新敌方子弹
-        Iterator<EnemyBullet> bulletIter = enemyBullets.iterator();
-        while (bulletIter.hasNext()) {
-            EnemyBullet b = bulletIter.next();
-            b.update(delta);
-            if (b.isOutOfScreen()) {
-                bulletIter.remove();
-            }
-        }
-
-        // 清屏
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.2f, 1);
+        // 清屏，设置背景色为黑色
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // 渲染
+        // 开始绘制
         batch.begin();
-
-        for (Enemy e : enemies) {
-            e.render(batch);
-        }
-
-        for (EnemyBullet b : enemyBullets) {
-            b.render(batch);
-        }
-
-        player.render(batch);
-
+        batch.draw(playerTexture, playerX, playerY);
         batch.end();
     }
 
+    // 当窗口尺寸变化时调用，可用于调整摄像机或布局
+    @Override
+    public void resize(int width, int height) {}
 
-    @Override public void resize(int width, int height) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    // 游戏暂停时调用（切后台等）
+    @Override
+    public void pause() {}
 
+    // 游戏恢复时调用（回到前台）
+    @Override
+    public void resume() {}
+
+    // 当屏幕被切换时调用，可以释放不必要资源
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+    // 释放资源，避免内存泄漏
     @Override
     public void dispose() {
         batch.dispose();
-        player.dispose();
-        for (Enemy e : enemies) e.dispose();
-        for (EnemyBullet b : enemyBullets) b.dispose();
+        playerTexture.dispose();
     }
 
+    /*
+     * 额外建议添加接口/扩展点：
+     * - 输入处理拆分成单独方法 handleInput(float delta)
+     * - 游戏逻辑更新方法 update(float delta)
+     * - 增加敌人管理、子弹管理等游戏实体系统
+     * - 添加暂停菜单、得分统计、音效管理接口
+     */
 }
