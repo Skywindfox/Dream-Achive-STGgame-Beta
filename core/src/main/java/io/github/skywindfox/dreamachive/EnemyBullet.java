@@ -3,6 +3,8 @@ package io.github.skywindfox.dreamachive;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+
 
 /**
  * 敌人子弹类，支持指定角度飞行，并且贴图旋转跟随飞行方向
@@ -14,6 +16,8 @@ public class EnemyBullet {
     private Texture texture;      // 子弹贴图
 
     private float originX, originY; // 旋转中心点（通常是贴图中心）
+    private static final int HITBOX_SIZE = 3; // 判定点大小
+
 
     /**
      * 构造函数
@@ -53,6 +57,7 @@ public class EnemyBullet {
      */
     public void render(SpriteBatch batch) {
         // 绘制时以中心点旋转，旋转角度是angle - 90度，因为一般贴图朝上，需要调整
+    	System.out.println("Rendering enemy bullet at (" + x + ", " + y + ")");
         batch.draw(texture, 
             x - originX, y - originY,
             originX, originY,
@@ -61,7 +66,18 @@ public class EnemyBullet {
             angle - 90f, // 贴图通常是向上，调整角度让贴图朝飞行方向
             0, 0, texture.getWidth(), texture.getHeight(),
             false, false);
+        System.out.println("Rendering bullet at x=" + x + ", y=" + y);
     }
+    
+    /**
+     * 获取用于碰撞检测的小矩形判定区域（贴图中心）
+     */
+    public Rectangle getBounds() {
+        float hitboxX = x - HITBOX_SIZE / 2f;
+        float hitboxY = y - HITBOX_SIZE / 2f;
+        return new Rectangle(hitboxX, hitboxY, HITBOX_SIZE, HITBOX_SIZE);
+    }
+
 
     /**
      * 判断子弹是否已经超出屏幕外（简单判断）

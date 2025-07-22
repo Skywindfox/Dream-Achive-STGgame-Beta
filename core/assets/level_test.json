@@ -1,0 +1,19 @@
+[
+  {
+    "type": "BasicEnemy",
+    "time": 0.1,
+    "x": 150,
+    "y": 300,
+    "hp": 1,
+    "speed": 100,
+    "shootInterval": 1000,
+    "bulletSpeed": 0,
+    "bulletCount": 0,
+    "bulletAngleRange": 0,
+    "movePattern": "straight",
+    "moveParams": {
+      "amplitude": 50,
+      "frequency": 0.05
+    }
+  }
+]
